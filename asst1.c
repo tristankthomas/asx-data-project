@@ -35,10 +35,59 @@
 
 */
 
+/* Preprocessor declarations */
+#include <stdio.h>
+#define MAXVALS 10000
+
+/* Function prototypes */
+int read_par_arrays(int D1[], int D2[], int D3[], int D4[], double F[], int maxvals);
+
+
+/* Main function scafolding */
 int
 main(int argc, char *argv[]) {
+    int nnumbs;
+    int date[MAXVALS], day[MAXVALS], month[MAXVALS], year[MAXVALS];
+    double asx[MAXVALS];
 
-	
+	nnumbs = read_par_arrays(date, day, month, year, asx, MAXVALS);
+
+    // prints arrays for test
+    for (int i = 0; i < nnumbs; i++) {
+        printf("%d %d %d %d %.1f\n", date[i], day[i], month[i], year[i], asx[i]);
+    }
 
 	return 0;
 }
+
+/****************************************************************************/
+/* Function that reads the 5 data columns into parallel arrays 
+** give credit for this code */
+
+int read_par_arrays(int D1[], int D2[], int D3[], int D4[], double F[], int maxvals) {
+    int n = 0, excess = 0, ch;
+    int num1, num2, num3, num4;
+    double num5;
+    
+    while ((ch = getchar()) != EOF) {
+        if (ch == '\n') {
+            break;
+        }
+    }
+
+    while (scanf("%d %d %d %d %lf", &num1, &num2, &num3, &num4, &num5) == 5) {
+        if (n == maxvals) {
+            excess += 1;
+        } else {
+            D1[n] = num1;
+            D2[n] = num2;
+            D3[n] = num3;
+            D4[n] = num4;
+            F[n] = num5;
+            n++;
+        }
+
+    }
+    return n;
+}
+
