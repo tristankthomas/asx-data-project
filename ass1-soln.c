@@ -38,10 +38,15 @@
 /* Preprocessor declarations */
 #include <stdio.h>
 #define MAXVALS 10000
+#define FIRSTWEEK 0
 
 /* Function prototypes */
-int read_par_arrays(int D1[], int D2[], int D3[], int D4[], double F[], int maxvals);
+int read_par_arrays(int D1[], int D2[], int D3[], int D4[], 
+    double F[], int maxvals);
+void print_row(int day[], int month[], int year[], double price[], int index);
 
+
+/* ************************************************************************** */
 
 /* Main function scafolding */
 int
@@ -50,44 +55,62 @@ main(int argc, char *argv[]) {
     int date[MAXVALS], day[MAXVALS], month[MAXVALS], year[MAXVALS];
     double asx[MAXVALS];
 
+    /* SECTION 1 */
 	nnumbs = read_par_arrays(date, day, month, year, asx, MAXVALS);
 
+    print_row(day, month, year, asx, FIRSTWEEK);
+    print_row(day, month, year, asx, nnumbs - 1);
+
+
+
+
+
+    /*
     // prints arrays for test
     for (int i = 0; i < nnumbs; i++) {
         printf("%d %d %d %d %.1f\n", date[i], day[i], month[i], year[i], asx[i]);
     }
-
+    */
 	return 0;
 }
 
-/****************************************************************************/
+/******************************************************************************/
 /* Function that reads the 5 data columns into parallel arrays 
 ** give credit for this code */
 
-int read_par_arrays(int D1[], int D2[], int D3[], int D4[], double F[], int maxvals) {
-    int n = 0, excess = 0, ch;
+int read_par_arrays(int D1[], int D2[], int D3[], int D4[], 
+        double F[], int maxvals) {
+    int n = 0, ch;
     int num1, num2, num3, num4;
     double num5;
     
+    /* discards header line */
     while ((ch = getchar()) != EOF) {
         if (ch == '\n') {
             break;
         }
     }
-
+    
+    /* reads data into 5 arrays */
     while (scanf("%d %d %d %d %lf", &num1, &num2, &num3, &num4, &num5) == 5) {
-        if (n == maxvals) {
-            excess += 1;
-        } else {
             D1[n] = num1;
             D2[n] = num2;
             D3[n] = num3;
             D4[n] = num4;
             F[n] = num5;
             n++;
-        }
 
     }
+
+    /* returns the number of rows read */
     return n;
 }
 
+
+/* ************************************************************************** */
+/* prints out a single row of the inputed data based on the inputted index */
+
+void print_row(int day[], int month[], int year[], double price[], int index) {
+    printf("S1, week ending %d/%02d/%d,    asx = %.1f\n", 
+        day[index], month[index], year[index], price[index]);
+}
