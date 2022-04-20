@@ -31,19 +31,20 @@
    or sought benefit from such actions.
 
    Signed by: Tristan Thomas
-   Dated:     19/4/2022
+   Datesd:     19/4/2022
 
 */
 
 /* Preprocessor declarations */
 #include <stdio.h>
-#define MAXVALS 10000
+#define MAXROWS 10000
 #define FIRSTWEEK 0
 
 /* Function prototypes */
-int read_par_arrays(int D1[], int D2[], int D3[], int D4[], 
-    double F[], int maxvals);
-void print_row(int day[], int month[], int year[], double price[], int index);
+int read_par_arrays(int dates[], int days[], int months[], int years[], 
+    double prices[], int max_rows);
+void print_dates(int days[], int months[], int years[], double prices[], int index);
+void discard_header();
 
 
 /* ************************************************************************** */
@@ -51,15 +52,18 @@ void print_row(int day[], int month[], int year[], double price[], int index);
 /* Main function scafolding */
 int
 main(int argc, char *argv[]) {
-    int nnumbs;
-    int date[MAXVALS], day[MAXVALS], month[MAXVALS], year[MAXVALS];
-    double asx[MAXVALS];
+    int nrows;
+    int dates[MAXROWS], days[MAXROWS], months[MAXROWS], years[MAXROWS];
+    double asx[MAXROWS];
+    
+    nrows = read_par_arrays(dates, days, months, years, asx, MAXROWS);
 
     /* SECTION 1 */
-	nnumbs = read_par_arrays(date, day, month, year, asx, MAXVALS);
 
-    print_row(day, month, year, asx, FIRSTWEEK);
-    print_row(day, month, year, asx, nnumbs - 1);
+    print_dates(days, months, years, asx, FIRSTWEEK);
+    print_dates(days, months, years, asx, nrows - 1);
+
+
 
 
 
@@ -68,7 +72,7 @@ main(int argc, char *argv[]) {
     /*
     // prints arrays for test
     for (int i = 0; i < nnumbs; i++) {
-        printf("%d %d %d %d %.1f\n", date[i], day[i], month[i], year[i], asx[i]);
+        printf("%d %d %d %d %.1f\n", dates[i], days[i], months[i], years[i], prices[i]);
     }
     */
 	return 0;
@@ -78,39 +82,51 @@ main(int argc, char *argv[]) {
 /* Function that reads the 5 data columns into parallel arrays 
 ** give credit for this code */
 
-int read_par_arrays(int D1[], int D2[], int D3[], int D4[], 
-        double F[], int maxvals) {
-    int n = 0, ch;
-    int num1, num2, num3, num4;
-    double num5;
+int read_par_arrays(int dates[], int days[], int months[], int years[], 
+        double prices[], int max_rows) {
+    int nrows = 0;
+    int date, day, month, year;
+    double price;
     
     /* discards header line */
-    while ((ch = getchar()) != EOF) {
-        if (ch == '\n') {
-            break;
-        }
-    }
+    discard_header();
+    
     
     /* reads data into 5 arrays */
-    while (scanf("%d %d %d %d %lf", &num1, &num2, &num3, &num4, &num5) == 5) {
-            D1[n] = num1;
-            D2[n] = num2;
-            D3[n] = num3;
-            D4[n] = num4;
-            F[n] = num5;
-            n++;
+    while (scanf("%d %d %d %d %lf", &date, &day, &month, &year, &price) == 5) {
+            dates[nrows] = date;
+            days[nrows] = day;
+            months[nrows] = month;
+            years[nrows] = year;
+            prices[nrows] = price;
+            nrows++;
 
     }
 
     /* returns the number of rows read */
-    return n;
+    return nrows;
+}
+
+
+/* ************************************************************************** */
+/* discards the header of the input file */
+void discard_header() {
+    char ch;
+    while ((ch = getchar()) != EOF) {
+        if (ch == '\n') {
+            return;
+        }
+    }
 }
 
 
 /* ************************************************************************** */
 /* prints out a single row of the inputed data based on the inputted index */
 
-void print_row(int day[], int month[], int year[], double price[], int index) {
-    printf("S1, week ending %d/%02d/%d,    asx = %.1f\n", 
-        day[index], month[index], year[index], price[index]);
+void print_dates(int days[], int months[], int years[], double price[], int index) {
+    printf("S1, week ending %d/%02d/%d,    prices = %.1f\n", 
+        days[index], months[index], years[index], price[index]);
 }
+
+
+/* ************************************************************************** */
