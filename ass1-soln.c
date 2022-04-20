@@ -169,7 +169,7 @@ double min_per_gain(double prices[], int n, int *min_index) {
         gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
         if (gain < min_gain || i == 0) {
             min_gain = gain;
-            *min_index = i;
+            *min_index = i + 1;
         }
     }
     return min_gain;
@@ -184,7 +184,7 @@ double max_per_gain(double prices[], int n, int *max_index) {
         gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
         if (gain > max_gain || i == 0) {
             max_gain = gain;
-            *max_index = i;
+            *max_index = i + 1; // incremented because gain at end of week
         }
     }
     return max_gain;
@@ -196,6 +196,9 @@ double max_per_gain(double prices[], int n, int *max_index) {
 double tot_per_gain(double prices[], int n) {
     return 100 * (prices[n - 1] - prices[0]) / prices[0];
 }
+
+
+
 
 /* ****************************** Helper Functons ************************** */
 
