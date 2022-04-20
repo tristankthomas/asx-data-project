@@ -37,13 +37,22 @@
 
 /* Preprocessor declarations */
 #include <stdio.h>
-#define MAXROWS 10000
-#define FIRSTWEEK 0
+#include <stdlib.h>
+#include <math.h>
+
+#define MAX_ROWS 10000
+#define FIRST_WEEK 0
 #define STAGE1 1
 #define STAGE2 2
 #define STAGE3 3
 #define MIN 0
 #define MAX 1
+#define MAX_MONTHS 12
+#define NEST_ARRAY_COLS 3
+#define NEST_ARRAY_MONTH 0
+#define NEST_ARRAY_AVG 1
+#define NEST_ARRAY_CONF 2
+
 
 /* Function prototypes */
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
@@ -51,13 +60,18 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 void print_one_row(int days[], int months[], int years[], double prices[], int index);
 void discard_header();
 void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage);
-void do_stage2();
+void do_stage2(int days[], int months[], int years[], double prices[], int nrows, int stage);
 void print_stage(int stage);
-double min_per_gain(double prices[], int n, int *min_index);
-double max_per_gain(double prices[], int n, int *max_index);
-double per_gain(double prices[], int index1, int index2);
+double min_perc_gain(double prices[], int n, int *min_index);
+double max_perc_gain(double prices[], int n, int *max_index);
+double perc_gain(double prices[], int index1, int index2);
 void print_gain(int days[], int months[], int years[], double gain, int index, int type);
 void print_tot_gain(int n, double gain);
+int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double prices[], int n);
+double avg_gain(double gains[], int num_weeks);
+double sum_arr(double arr[], int n);
+double conf_int(double gains[], int num_weeks, double avg);
+double std_dev(double gains[], int num_weeks, double avg);
 
 
 
@@ -67,13 +81,13 @@ void print_tot_gain(int n, double gain);
 int
 main(int argc, char *argv[]) {
     int nrows;
-    int dates[MAXROWS], days[MAXROWS], months[MAXROWS], years[MAXROWS];
-    double asx[MAXROWS];
+    int dates[MAX_ROWS], days[MAX_ROWS], months[MAX_ROWS], years[MAX_ROWS];
+    double asx[MAX_ROWS];
     
-    nrows = read_par_arrays(dates, days, months, years, asx, MAXROWS);
+    nrows = read_par_arrays(dates, days, months, years, asx, MAX_ROWS);
 
-    /* SECTION 1 */
     do_stage1(days, months, years, asx, nrows, STAGE1);
+    do_stage2(days, months, years, asx, nrows, STAGE2);
 
     /*
     // prints arrays for test
@@ -141,13 +155,13 @@ void discard_header() {
 void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage) {
     double min_gain, max_gain, tot_gain;
     int max_index, min_index;
-    min_gain = min_per_gain(prices, nrows, &min_index);
-    max_gain = max_per_gain(prices, nrows, &max_index);
-    tot_gain = per_gain(prices, FIRSTWEEK, nrows - 1);
+    min_gain = min_perc_gain(prices, nrows, &min_index);
+    max_gain = max_perc_gain(prices, nrows, &max_index);
+    tot_gain = perc_gain(prices, FIRST_WEEK, nrows - 1);
     
     /* prints first and last data points */
     print_stage(stage);
-    print_one_row(days, months, years, prices, FIRSTWEEK);
+    print_one_row(days, months, years, prices, FIRST_WEEK);
     print_stage(stage);
     print_one_row(days, months, years, prices, nrows - 1);
 
@@ -164,21 +178,39 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
 /* ************************************ Stage 2 **************************** */
 
 /* stage two outputs the following
-    - */
+    - average weekly gain for each month
+    - confidence interval for each month using standard deviation */
+ 
+ void do_stage2(int days[], int months[], int years[], double prices[], int nrows, int stage) {
+     double month_stats[MAX_MONTHS][NEST_ARRAY_COLS];
+     int nmonths;
+     // fills array with average gains and 95% confidence interval for each month
+     nmonths = monthly_stats(month_stats, months, prices, nrows);
+
+
+    for (int i = 0; i < nmonths; i++) {
+        printf("month num = %.2f, average = %.2f, conf int = %.2f\n", month_stats[i][0], month_stats[i][1], month_stats[i][2]);
+    }
+
+ }
+
 
 /* ************************************************************************** */
 
 /* calculates gain between two indexes */
-double per_gain(double prices[], int index1, int index2) {
+double perc_gain(double prices[], int index1, int index2) {
     return 100.0 * (prices[index2] - prices[index1]) / prices[index1];
 }
 
+
+/* ************************************************************************** */
+
 /* calculates the minimum percentage gain over the period */
 
-double min_per_gain(double prices[], int n, int *min_index) {
+double min_perc_gain(double prices[], int n, int *min_index) {
     double min_gain, gain;
     for (int i = 0; i < n - 1; i++) {
-        gain = per_gain(prices, i, i + 1);
+        gain = perc_gain(prices, i, i + 1);
         if (gain < min_gain || i == 0) {
             min_gain = gain;
             *min_index = i + 1;
@@ -190,10 +222,10 @@ double min_per_gain(double prices[], int n, int *min_index) {
 /* ************************************************************************** */
 
 /* calculates the maximum percentage gain over the period */
-double max_per_gain(double prices[], int n, int *max_index) {
+double max_perc_gain(double prices[], int n, int *max_index) {
     double max_gain, gain;
     for (int i = 0; i < n - 1; i++) {
-        gain = per_gain(prices, i, i + 1);
+        gain = perc_gain(prices, i, i + 1);
         if (gain > max_gain || i == 0) {
             max_gain = gain;
             *max_index = i + 1; // incremented because gain at end of week
@@ -203,7 +235,80 @@ double max_per_gain(double prices[], int n, int *max_index) {
 }
 
 
+/* ************************************************************************** */
 
+/* finds the average gain and confidence interval for each month and puts into array */
+
+int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double prices[], int n) {
+    double gains[MAX_ROWS];
+    int num_weeks, nmonths = 0;
+    
+    for (int month = 1; month <= MAX_MONTHS; month++) {
+        num_weeks = 0; // buddy variable to gains
+        for (int i = 1; i < n; i++) {
+
+            if (months[i] == month) {
+                gains[num_weeks] = perc_gain(prices, i - 1, i);
+                num_weeks++;
+            }
+        }
+        if (num_weeks) {
+            month_stats[nmonths][NEST_ARRAY_MONTH] = month;
+            month_stats[nmonths][NEST_ARRAY_AVG] = avg_gain(gains, num_weeks);
+            month_stats[nmonths][NEST_ARRAY_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NEST_ARRAY_AVG]);
+            nmonths++; // buddy variable for month_stats
+            
+            /* for (int k = 0; k < num_weeks; k++) {
+                printf("%.4f ", gains[k]);
+            }*/
+            
+        }
+        printf("\n");
+    }
+    return nmonths;
+}
+
+
+/* ************************************************************************** */
+
+/* calculates the average gain given sum and number of elements */
+double avg_gain(double gains[], int num_weeks) {
+    return sum_arr(gains, num_weeks) / num_weeks;
+}
+
+
+/* ************************************************************************** */
+
+/* calculates the sum of the elements of an array */
+double sum_arr(double arr[], int n) {
+    double sum = 0;
+    for (int i = 0; i < n; i++) {
+        sum += arr[i];
+    }
+    return sum;
+}
+
+
+/* ************************************************************************** */
+
+/* calculates the confidence interval */
+
+double conf_int(double gains[], int num_weeks, double avg) {
+    return 1.96 * std_dev(gains, num_weeks, avg) / sqrt(num_weeks);
+}
+
+
+/* ************************************************************************** */
+
+/* calculates the standard deviation */
+
+double std_dev(double gains[], int num_weeks, double avg) {
+    double sum = 0;
+    for (int i = 0; i < num_weeks; i++) {
+        sum += ((gains[i] - avg) * (gains[i] - avg)) / (num_weeks - 1);
+    }
+    return sqrt(sum);
+}
 
 
 
