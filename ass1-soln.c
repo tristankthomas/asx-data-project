@@ -46,7 +46,7 @@
 /* Function prototypes */
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
     double prices[], int max_rows);
-void print_dates(int days[], int months[], int years[], double prices[], int index);
+void print_one_row(int days[], int months[], int years[], double prices[], int index);
 void discard_header();
 void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage);
 void print_stage(int stage);
@@ -67,15 +67,6 @@ main(int argc, char *argv[]) {
 
     /* SECTION 1 */
     do_stage1(days, months, years, asx, nrows, STAGE1);
-    /*
-    print_dates(days, months, years, asx, FIRSTWEEK);
-    print_dates(days, months, years, asx, nrows - 1);
-    */
-
-
-
-
-
 
     /*
     // prints arrays for test
@@ -147,7 +138,10 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
     tot_gain = tot_per_gain(prices, nrows);
     
     /* prints first and last data points */
-    
+    print_stage(stage);
+    print_one_row(days, months, years, prices, FIRSTWEEK);
+    print_stage(stage);
+    print_one_row(days, months, years, prices, nrows - 1);
 
     /* prints gains */
     print_stage(stage);
@@ -163,8 +157,8 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
 
 /* prints out a single row of the inputed data based on the inputted index */
 
-void print_dates(int days[], int months[], int years[], double price[], int index) {
-    printf("S1, week ending %d/%02d/%d,    prices = %.1f\n", 
+void print_one_row(int days[], int months[], int years[], double price[], int index) {
+    printf("week ending %d/%02d/%d,    asx = %.1f\n", 
         days[index], months[index], years[index], price[index]);
 }
 
@@ -209,5 +203,5 @@ double tot_per_gain(double prices[], int n) {
 
 /* prints the section number */
 void print_stage(int stage) {
-    printf("S%d", stage);
+    printf("S%d, ", stage);
 }
