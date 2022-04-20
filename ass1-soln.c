@@ -51,12 +51,14 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 void print_one_row(int days[], int months[], int years[], double prices[], int index);
 void discard_header();
 void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage);
+void do_stage2();
 void print_stage(int stage);
 double min_per_gain(double prices[], int n, int *min_index);
 double max_per_gain(double prices[], int n, int *max_index);
-double tot_per_gain(double prices[], int n);
+double per_gain(double prices[], int index1, int index2);
 void print_gain(int days[], int months[], int years[], double gain, int index, int type);
 void print_tot_gain(int n, double gain);
+
 
 
 /* ************************************************************************** */
@@ -127,7 +129,7 @@ void discard_header() {
 
 
 
-/* ************************************************************************** */
+/* *********************************** Stage 1 ************************** */
 
 /* stage one outputs the following 
     - price at week 1
@@ -141,7 +143,7 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
     int max_index, min_index;
     min_gain = min_per_gain(prices, nrows, &min_index);
     max_gain = max_per_gain(prices, nrows, &max_index);
-    tot_gain = tot_per_gain(prices, nrows);
+    tot_gain = per_gain(prices, FIRSTWEEK, nrows - 1);
     
     /* prints first and last data points */
     print_stage(stage);
@@ -159,14 +161,24 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
 }
 
 
+/* ************************************ Stage 2 **************************** */
+
+/* stage two outputs the following
+    - */
+
 /* ************************************************************************** */
+
+/* calculates gain between two indexes */
+double per_gain(double prices[], int index1, int index2) {
+    return 100.0 * (prices[index2] - prices[index1]) / prices[index1];
+}
 
 /* calculates the minimum percentage gain over the period */
 
 double min_per_gain(double prices[], int n, int *min_index) {
     double min_gain, gain;
     for (int i = 0; i < n - 1; i++) {
-        gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
+        gain = per_gain(prices, i, i + 1);
         if (gain < min_gain || i == 0) {
             min_gain = gain;
             *min_index = i + 1;
@@ -181,7 +193,7 @@ double min_per_gain(double prices[], int n, int *min_index) {
 double max_per_gain(double prices[], int n, int *max_index) {
     double max_gain, gain;
     for (int i = 0; i < n - 1; i++) {
-        gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
+        gain = per_gain(prices, i, i + 1);
         if (gain > max_gain || i == 0) {
             max_gain = gain;
             *max_index = i + 1; // incremented because gain at end of week
@@ -190,12 +202,7 @@ double max_per_gain(double prices[], int n, int *max_index) {
     return max_gain;
 }
 
-/* ************************************************************************** */
 
-/* calculates the total percentage gain over the period */
-double tot_per_gain(double prices[], int n) {
-    return 100 * (prices[n - 1] - prices[0]) / prices[0];
-}
 
 
 
@@ -222,7 +229,7 @@ void print_one_row(int days[], int months[], int years[], double price[], int in
 
 /* prints out the percentage gains for stage 1 */
 void print_gain(int days[], int months[], int years[], double gain, int index, int type) {
-    printf("%s weekly gain on %02d/%02d/%d = %5.2f%%\n", type ? "max" : "min", 
+    printf("%s weekly gain on %02d/%02d/%d = %6.2f%%\n", type ? "max" : "min", 
         days[index], months[index], years[index], gain);
 }
 
@@ -231,5 +238,5 @@ void print_gain(int days[], int months[], int years[], double gain, int index, i
 
 /* prints out the total gain over period for stage 1 */
 void print_tot_gain(int n, double gain) {
-    printf("change over     %d week period = %5.2f%%\n", n - 1, gain);
+    printf("change over  %4d week period = %6.2f%%\n", n - 1, gain);
 }
