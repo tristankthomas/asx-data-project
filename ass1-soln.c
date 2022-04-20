@@ -39,13 +39,20 @@
 #include <stdio.h>
 #define MAXROWS 10000
 #define FIRSTWEEK 0
+#define STAGE1 1
+#define STAGE2 2
+#define STAGE3 3
 
 /* Function prototypes */
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
     double prices[], int max_rows);
 void print_dates(int days[], int months[], int years[], double prices[], int index);
 void discard_header();
-
+void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage);
+void print_stage(int stage);
+double min_per_gain(double prices[], int n);
+double max_per_gain(double prices[], int n);
+double tot_per_gain(double prices[], int n);
 
 /* ************************************************************************** */
 
@@ -59,10 +66,11 @@ main(int argc, char *argv[]) {
     nrows = read_par_arrays(dates, days, months, years, asx, MAXROWS);
 
     /* SECTION 1 */
-
+    do_stage1(days, months, years, asx, nrows, STAGE1);
+    /*
     print_dates(days, months, years, asx, FIRSTWEEK);
     print_dates(days, months, years, asx, nrows - 1);
-
+    */
 
 
 
@@ -79,6 +87,7 @@ main(int argc, char *argv[]) {
 }
 
 /******************************************************************************/
+
 /* Function that reads the 5 data columns into parallel arrays 
 ** give credit for this code */
 
@@ -109,6 +118,7 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 
 
 /* ************************************************************************** */
+
 /* discards the header of the input file */
 void discard_header() {
     char ch;
@@ -120,7 +130,37 @@ void discard_header() {
 }
 
 
+
 /* ************************************************************************** */
+
+/* stage one outputs the following 
+    - price at week 1
+    - price at the last week
+    - min weekly percentage gain over period
+    - max weekly percentage gain over period
+    - total percentage gain over the period */
+
+void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage) {
+    double min_gain, max_gain, tot_gain;
+    min_gain = min_per_gain(prices, nrows);
+    max_gain = max_per_gain(prices, nrows);
+    tot_gain = tot_per_gain(prices, nrows);
+    
+    /* prints first and last data points */
+    
+
+    /* prints gains */
+    print_stage(stage);
+    printf("%f\n", min_gain);
+    print_stage(stage);
+    printf("%f\n", max_gain);
+    print_stage(stage);
+    printf("%f\n", tot_gain);
+}
+
+
+/* ************************************************************************** */
+
 /* prints out a single row of the inputed data based on the inputted index */
 
 void print_dates(int days[], int months[], int years[], double price[], int index) {
@@ -130,3 +170,44 @@ void print_dates(int days[], int months[], int years[], double price[], int inde
 
 
 /* ************************************************************************** */
+
+/* calculates the minimum percentage gain over the period */
+
+double min_per_gain(double prices[], int n) {
+    double min_gain, gain;
+    for (int i = 0; i < n - 1; i++) {
+        gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
+        if (gain < min_gain || i == 0) {
+            min_gain = gain;
+        }
+    }
+    return min_gain;
+}
+
+/* ************************************************************************** */
+
+/* calculates the maximum percentage gain over the period */
+double max_per_gain(double prices[], int n) {
+    double max_gain, gain;
+    for (int i = 0; i < n - 1; i++) {
+        gain = 100 * (prices[i + 1] - prices[i]) / prices[i];
+        if (gain > max_gain || i == 0) {
+            max_gain = gain;
+        }
+    }
+    return max_gain;
+}
+
+/* ************************************************************************** */
+
+/* calculates the total percentage gain over the period */
+double tot_per_gain(double prices[], int n) {
+    return 100 * (prices[n - 1] - prices[0]) / prices[0];
+}
+
+/* ****************************** Helper Functons ************************** */
+
+/* prints the section number */
+void print_stage(int stage) {
+    printf("S%d", stage);
+}
