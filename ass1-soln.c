@@ -56,6 +56,7 @@ double min_per_gain(double prices[], int n, int *min_index);
 double max_per_gain(double prices[], int n, int *max_index);
 double tot_per_gain(double prices[], int n);
 void print_gain(int days[], int months[], int years[], double gain, int index, int type);
+void print_tot_gain(int n, double gain);
 
 
 /* ************************************************************************** */
@@ -154,7 +155,7 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
     print_stage(stage);
     print_gain(days, months, years, max_gain, max_index, MAX);
     print_stage(stage);
-    printf("%f\n", tot_gain);
+    print_tot_gain(nrows, tot_gain);
 }
 
 
@@ -215,7 +216,17 @@ void print_one_row(int days[], int months[], int years[], double price[], int in
 
 
 /* ************************************************************************** */
+
+/* prints out the percentage gains for stage 1 */
 void print_gain(int days[], int months[], int years[], double gain, int index, int type) {
     printf("%s weekly gain on %02d/%02d/%d = %5.2f%%\n", type ? "max" : "min", 
         days[index], months[index], years[index], gain);
+}
+
+
+/* ************************************************************************** */
+
+/* prints out the total gain over period for stage 1 */
+void print_tot_gain(int n, double gain) {
+    printf("change over     %d week period = %5.2f%%\n", n - 1, gain);
 }
