@@ -344,7 +344,7 @@ int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[],
             }
 
         }
-        
+
         if (num_weeks) {
 
             month_stats[nmonths][NESTED_MONTH_MONTH] = month;
@@ -585,7 +585,7 @@ void print_year_stats(double year_stats[][NESTED_YEAR_COLS],
         form_graph(year_stats, graph, i);
 
         print_stage(stage);
-        printf("%.f | %6.1f-- %-5.1f |%s\n", year_stats[i][NESTED_YEAR_YEAR], 
+        printf("%.f | %6.1f--%6.1f |%s\n", year_stats[i][NESTED_YEAR_YEAR], 
             year_stats[i][NESTED_YEAR_MIN], year_stats[i][NESTED_YEAR_MAX], 
             graph);
 
