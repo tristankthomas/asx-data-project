@@ -48,13 +48,20 @@
 #define MIN 0
 #define MAX 1
 #define MAX_MONTHS 12
-#define MAX_MONTH_STR_LEN 10
-#define NEST_ARRAY_COLS 4
-#define NEST_ARRAY_MONTH 0
-#define NEST_ARRAY_WEEKS 1
-#define NEST_ARRAY_AVG 2
-#define NEST_ARRAY_CONF 3
+#define MAX_YEARS MAX_ROWS / 52
 #define OVERALL 13
+#define MAX_MONTH_STR_LEN 10
+#define NESTED_MONTH_COLS 4
+#define NESTED_MONTH_MONTH 0
+#define NESTED_MONTH_WEEKS 1
+#define NESTED_MONTH_AVG 2
+#define NESTED_MONTH_CONF 3
+#define NESTED_YEAR_COLS 3
+#define NESTED_YEAR_YEAR 0
+#define NESTED_YEAR_MIN 1
+#define NESTED_YEAR_MAX 2
+
+
 
 
 
@@ -64,25 +71,29 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 void print_one_row(int days[], int months[], int years[], double prices[], int index);
 void discard_header();
 void do_stage1(int days[], int months[], int years[], double prices[], int nrows, int stage);
-void do_stage2(int days[], int months[], int years[], double prices[], int nrows, int stage);
+void do_stage2(int months[], double prices[], int nrows, int stage);
+void do_stage3(int years[], double prices[], int nrows, int stage);
 void print_stage(int stage);
 double min_perc_gain(double prices[], int n, int *min_index);
 double max_perc_gain(double prices[], int n, int *max_index);
 double perc_gain(double prices[], int index1, int index2);
 void print_gain(int days[], int months[], int years[], double gain, int index, int type);
 void print_tot_gain(int n, double gain);
-int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double prices[], int n);
+int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[], double prices[], int n);
 double avg_gain(double gains[], int num_weeks);
 double sum_arr(double arr[], int n);
 double conf_int(double gains[], int num_weeks, double avg);
 double std_dev(double gains[], int num_weeks, double avg);
-void print_month_stats(double month_stats[][NEST_ARRAY_COLS], int nmonths, int stage);
+void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int stage);
+int yearly_stats(double year_stats[][NESTED_YEAR_COLS], int years[], double prices[], int n);
+double min_price(double prices[], int start, int finish);
+double max_price(double prices[], int start, int finish);
 
 
 
-/* ************************************************************************** */
 
-/* Main function scafolding */
+/* ============================== Main function ============================= */
+
 int
 main(int argc, char *argv[]) {
     int nrows;
@@ -91,19 +102,28 @@ main(int argc, char *argv[]) {
     
     nrows = read_par_arrays(dates, days, months, years, asx, MAX_ROWS);
 
-    do_stage1(days, months, years, asx, nrows, STAGE1);
-    do_stage2(days, months, years, asx, nrows, STAGE2);
+    do_stage3(years, asx, nrows, STAGE3);
+    /* for (int i = 0; i < nrows; i++) {
+        if (years[i] == 2003) {
+            printf("%.2f \n", asx[i]);
+        }
+       
+   } */
 
+    do_stage1(days, months, years, asx, nrows, STAGE1);
+    do_stage2(months, asx, nrows, STAGE2);
+    
     /*
     // prints arrays for test
     for (int i = 0; i < nnumbs; i++) {
         printf("%d %d %d %d %.1f\n", dates[i], days[i], months[i], years[i], prices[i]);
     }
     */
+   
 	return 0;
 }
 
-/******************************************************************************/
+/* ========================================================================== */
 
 /* Function that reads the 5 data columns into parallel arrays 
 ** give credit for this code */
@@ -134,7 +154,7 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* discards the header of the input file */
 void discard_header() {
@@ -148,7 +168,7 @@ void discard_header() {
 
 
 
-/* *********************************** Stage 1 ************************** */
+/* ================================= Stage 1 ================================ */
 
 /* stage one outputs the following 
     - price at week 1
@@ -180,16 +200,16 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
 }
 
 
-/* ************************************ Stage 2 **************************** */
+/* ================================= Stage 2 ================================ */
 
 /* stage two outputs the following
     - average weekly gain for each month
     - confidence interval for each month using standard deviation */
  
- void do_stage2(int days[], int months[], int years[], double prices[], int nrows, int stage) {
-    double month_stats[MAX_MONTHS][NEST_ARRAY_COLS];
+ void do_stage2(int months[], double prices[], int nrows, int stage) {
+    double month_stats[MAX_MONTHS][NESTED_MONTH_COLS];
     int nmonths;
-    // fills array with average gains and 95% confidence interval for each month
+    // fills array with number of weeks, average gains and 95% confidence interval for each month
     nmonths = monthly_stats(month_stats, months, prices, nrows);
     
     print_month_stats(month_stats, nmonths, stage);
@@ -201,16 +221,40 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
     */
  }
 
+/* ================================= Stage 3 ================================ */
 
-/* ************************************************************************** */
+/* stage three outputs the following
+    - min and max asx values for each year
+    - tabulates yearly data into multiple 200 index point groups */
 
-/* calculates gain between two indexes */
+void do_stage3(int years[], double prices[], int nrows, int stage) {
+    double year_stats[MAX_YEARS][NESTED_YEAR_COLS];
+    int nyears;
+
+    nyears = yearly_stats(year_stats, years, prices, nrows);
+
+    
+
+     for (int i = 0; i < nyears; i++) {
+        printf("year = %.f, min = %.2f, max = %.2f\n", year_stats[i][0], year_stats[i][1], year_stats[i][2]);
+    } 
+    
+
+    printf("\n");
+
+}
+
+
+
+/* ========================================================================== */
+
+/* calculates gain between two values of array */
 double perc_gain(double prices[], int index1, int index2) {
     return 100.0 * (prices[index2] - prices[index1]) / prices[index1];
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the minimum percentage gain over the period */
 
@@ -226,7 +270,7 @@ double min_perc_gain(double prices[], int n, int *min_index) {
     return min_gain;
 }
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the maximum percentage gain over the period */
 double max_perc_gain(double prices[], int n, int *max_index) {
@@ -242,11 +286,11 @@ double max_perc_gain(double prices[], int n, int *max_index) {
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* finds the average gain and confidence interval for each month and puts into array */
 
-int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double prices[], int n) {
+int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[], double prices[], int n) {
     double gains[MAX_ROWS];
     int num_weeks, nmonths = 0;
     
@@ -264,10 +308,10 @@ int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double pr
             }
         }
         if (num_weeks) {
-            month_stats[nmonths][NEST_ARRAY_MONTH] = month;
-            month_stats[nmonths][NEST_ARRAY_WEEKS] = num_weeks;
-            month_stats[nmonths][NEST_ARRAY_AVG] = avg_gain(gains, num_weeks);
-            month_stats[nmonths][NEST_ARRAY_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NEST_ARRAY_AVG]);
+            month_stats[nmonths][NESTED_MONTH_MONTH] = month;
+            month_stats[nmonths][NESTED_MONTH_WEEKS] = num_weeks;
+            month_stats[nmonths][NESTED_MONTH_AVG] = avg_gain(gains, num_weeks);
+            month_stats[nmonths][NESTED_MONTH_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NESTED_MONTH_MONTH]);
 
             nmonths++; // buddy variable for month_stats
         }
@@ -276,7 +320,7 @@ int monthly_stats(double month_stats[][NEST_ARRAY_COLS], int months[], double pr
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the average gain given sum and number of elements */
 double avg_gain(double gains[], int num_weeks) {
@@ -284,7 +328,7 @@ double avg_gain(double gains[], int num_weeks) {
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the sum of the elements of an array */
 double sum_arr(double arr[], int n) {
@@ -296,7 +340,7 @@ double sum_arr(double arr[], int n) {
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the confidence interval */
 
@@ -305,7 +349,7 @@ double conf_int(double gains[], int num_weeks, double avg) {
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* calculates the standard deviation */
 
@@ -319,14 +363,70 @@ double std_dev(double gains[], int num_weeks, double avg) {
 
 
 
-/* ****************************** Helper Functons ************************** */
+/* ========================================================================== */
+
+/* for each year calculates the minimum and maximum prices and adds to nested array */
+
+int yearly_stats(double year_stats[][NESTED_YEAR_COLS], int years[], double prices[], int n) {
+    int nyears = 0, j = 0;
+    for (int i = 0; i < n; i++) {
+        
+        if (years[i] != years[i + 1]) {
+            year_stats[nyears][NESTED_YEAR_YEAR] = years[i];
+            year_stats[nyears][NESTED_YEAR_MIN] = min_price(prices, j, i);
+            year_stats[nyears][NESTED_YEAR_MAX] = max_price(prices, j, i);
+            nyears++;
+            j = i + 1; // offset by one to avoid starting at the last element of the previous year
+        }
+
+    }
+    return nyears;
+}
+
+
+
+/* ========================================================================== */
+
+/* calculates the minimum value of a given array between two indexes */
+double min_price(double prices[], int start, int finish) {
+    double min = prices[start];
+    for (int i = start; i <= finish; i++) {
+        if (prices[i] < min) {
+            min = prices[i];
+        }
+    }
+    return min;
+
+}
+
+
+
+
+/* ========================================================================== */
+
+/* calculates the maximum value of a given array between two indexes */
+double max_price(double prices[], int start, int finish) {
+    double max = prices[start];
+    for (int i = start; i <= finish; i++) {
+        if (prices[i] > max) {
+            max = prices[i];
+        }
+    }
+    return max;
+
+}
+
+
+
+
+/* ============================ Helper Functions ============================ */
 
 /* prints the section number */
 void print_stage(int stage) {
     printf("S%d, ", stage);
 }
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* prints out a single row of the inputed data based on the inputted index */
 
@@ -337,7 +437,7 @@ void print_one_row(int days[], int months[], int years[], double price[], int in
 
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* prints out the percentage gains for stage 1 */
 void print_gain(int days[], int months[], int years[], double gain, int index, int type) {
@@ -346,7 +446,7 @@ void print_gain(int days[], int months[], int years[], double gain, int index, i
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* prints out the total gain over period for stage 1 */
 void print_tot_gain(int n, double gain) {
@@ -354,15 +454,16 @@ void print_tot_gain(int n, double gain) {
 }
 
 
-/* ************************************************************************** */
+/* ========================================================================== */
 
 /* prints out the monthly gain stats for each month covered */
 
-void print_month_stats(double month_stats[][NEST_ARRAY_COLS], int nmonths, int stage) {
+void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int stage) {
     // array of months plus overall
     const char month_num[MAX_MONTHS + 1][MAX_MONTH_STR_LEN] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Overall"};
     for (int i = 0; i < nmonths; i++) {
         print_stage(stage);
-        printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- %.2f%%\n", month_num[(int) month_stats[i][NEST_ARRAY_MONTH] - 1], month_stats[i][NEST_ARRAY_WEEKS], month_stats[i][NEST_ARRAY_AVG], month_stats[i][NEST_ARRAY_CONF]);
+        printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- %.2f%%\n", month_num[(int) month_stats[i][NESTED_MONTH_MONTH] - 1], month_stats[i][NESTED_MONTH_WEEKS], month_stats[i][NESTED_MONTH_AVG], month_stats[i][NESTED_MONTH_CONF]);
     }
 }
+
