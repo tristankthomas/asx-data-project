@@ -366,4 +366,3 @@ void print_month_stats(double month_stats[][NEST_ARRAY_COLS], int nmonths, int s
         printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- %.2f%%\n", month_num[(int) month_stats[i][NEST_ARRAY_MONTH] - 1], month_stats[i][NEST_ARRAY_WEEKS], month_stats[i][NEST_ARRAY_AVG], month_stats[i][NEST_ARRAY_CONF]);
     }
 }
-   
