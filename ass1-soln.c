@@ -50,7 +50,7 @@
 #define MAX_MONTHS 12
 #define MAX_YEARS MAX_ROWS / 52
 #define OVERALL 13
-#define MAX_MONTH_STR_LEN 10
+#define MAX_MONTH_STR_LEN 9
 #define NESTED_MONTH_COLS 4
 #define NESTED_MONTH_MONTH 0
 #define NESTED_MONTH_WEEKS 1
@@ -60,6 +60,9 @@
 #define NESTED_YEAR_YEAR 0
 #define NESTED_YEAR_MIN 1
 #define NESTED_YEAR_MAX 2
+
+/* Typedefs */
+
 
 
 
@@ -102,7 +105,7 @@ main(int argc, char *argv[]) {
     
     nrows = read_par_arrays(dates, days, months, years, asx, MAX_ROWS);
 
-    do_stage3(years, asx, nrows, STAGE3);
+
     /* for (int i = 0; i < nrows; i++) {
         if (years[i] == 2003) {
             printf("%.2f \n", asx[i]);
@@ -112,6 +115,7 @@ main(int argc, char *argv[]) {
 
     do_stage1(days, months, years, asx, nrows, STAGE1);
     do_stage2(months, asx, nrows, STAGE2);
+    do_stage3(years, asx, nrows, STAGE3);
     
     /*
     // prints arrays for test
@@ -207,13 +211,13 @@ void do_stage1(int days[], int months[], int years[], double prices[], int nrows
     - confidence interval for each month using standard deviation */
  
  void do_stage2(int months[], double prices[], int nrows, int stage) {
-    double month_stats[MAX_MONTHS][NESTED_MONTH_COLS];
+    double month_stats[MAX_MONTHS + 1][NESTED_MONTH_COLS];
     int nmonths;
     // fills array with number of weeks, average gains and 95% confidence interval for each month
     nmonths = monthly_stats(month_stats, months, prices, nrows);
     
     print_month_stats(month_stats, nmonths, stage);
-    
+    printf("\n");
   /*
      for (int i = 0; i < nmonths; i++) {
         printf("month num = %.2f, num weeks = %.2f, average = %.2f, conf int = %.2f\n", month_stats[i][0], month_stats[i][1], month_stats[i][2], month_stats[i][3]);
@@ -312,7 +316,7 @@ int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[], double 
             month_stats[nmonths][NESTED_MONTH_WEEKS] = num_weeks;
             month_stats[nmonths][NESTED_MONTH_AVG] = avg_gain(gains, num_weeks);
             month_stats[nmonths][NESTED_MONTH_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NESTED_MONTH_MONTH]);
-
+            
             nmonths++; // buddy variable for month_stats
         }
     }
@@ -460,10 +464,10 @@ void print_tot_gain(int n, double gain) {
 
 void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int stage) {
     // array of months plus overall
-    const char month_num[MAX_MONTHS + 1][MAX_MONTH_STR_LEN] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Overall"};
+    char month_num[MAX_MONTHS + 1][MAX_MONTH_STR_LEN + 1] = {"January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December", "Overall"};
     for (int i = 0; i < nmonths; i++) {
         print_stage(stage);
-        printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- %.2f%%\n", month_num[(int) month_stats[i][NESTED_MONTH_MONTH] - 1], month_stats[i][NESTED_MONTH_WEEKS], month_stats[i][NESTED_MONTH_AVG], month_stats[i][NESTED_MONTH_CONF]);
+        printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- %.2f%%\n",  month_num[(int) month_stats[i][NESTED_MONTH_MONTH] - 1], month_stats[i][NESTED_MONTH_WEEKS], month_stats[i][NESTED_MONTH_AVG], month_stats[i][NESTED_MONTH_CONF]);
     }
 }
 
