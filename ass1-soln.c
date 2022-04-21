@@ -116,9 +116,10 @@ void ta_da();
 
 int
 main(int argc, char *argv[]) {
-    int nrows;
-    int dates[MAX_ROWS], days[MAX_ROWS], months[MAX_ROWS], years[MAX_ROWS];
-    double asx[MAX_ROWS];
+    int nrows = 0;
+    int dates[MAX_ROWS] = {0}, days[MAX_ROWS] = {0}, months[MAX_ROWS] = {0}, 
+        years[MAX_ROWS] = {0};
+    double asx[MAX_ROWS] = {0};
     
     nrows = read_par_arrays(dates, days, months, years, asx, MAX_ROWS);
 
@@ -190,7 +191,7 @@ void discard_header() {
 void do_stage1(int days[], int months[], int years[], double prices[], 
         int nrows, int stage) {
     double min_gain, max_gain, tot_gain;
-    int max_index, min_index;
+    int max_index = 0, min_index = 0;
 
     min_gain = min_perc_gain(prices, nrows, &min_index);
     max_gain = max_perc_gain(prices, nrows, &max_index);
@@ -277,7 +278,7 @@ double perc_gain(double prices[], int index1, int index2) {
 /* calculates the minimum percentage gain over the period */
 
 double min_perc_gain(double prices[], int n, int *min_index) {
-    double min_gain, gain;
+    double min_gain = 0, gain;
 
     for (int i = 0; i < n - 1; i++) {
 
@@ -300,7 +301,7 @@ double min_perc_gain(double prices[], int n, int *min_index) {
 
 /* calculates the maximum percentage gain over the period */
 double max_perc_gain(double prices[], int n, int *max_index) {
-    double max_gain, gain;
+    double max_gain = 0, gain;
 
     for (int i = 0; i < n - 1; i++) {
 
