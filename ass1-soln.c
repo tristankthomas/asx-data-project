@@ -60,6 +60,11 @@
 #define NESTED_YEAR_YEAR 0
 #define NESTED_YEAR_MIN 1
 #define NESTED_YEAR_MAX 2
+#define POINTS_PER_CHAR 200
+#define MAX_PRICE 100000
+#define MAX_MARKER MAX_PRICE / POINTS_PER_CHAR
+#define MARKER '*'
+#define NULL_BYTE '\0'
 
 /* Typedefs */
 
@@ -91,7 +96,10 @@ void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int
 int yearly_stats(double year_stats[][NESTED_YEAR_COLS], int years[], double prices[], int n);
 double min_price(double prices[], int start, int finish);
 double max_price(double prices[], int start, int finish);
-void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int nyears, int stage);
+void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int n, int nyears, int stage);
+void form_graph(double year_stats[][NESTED_YEAR_COLS], char graph_string[MAX_MARKER], int year_index);
+int round_up(double num);
+void ta_da();
 
 
 
@@ -118,6 +126,8 @@ main(int argc, char *argv[]) {
     do_stage2(months, asx, nrows, STAGE2);
     do_stage3(years, asx, nrows, STAGE3);
     
+
+    ta_da();
     /*
     // prints arrays for test
     for (int i = 0; i < nnumbs; i++) {
@@ -239,13 +249,20 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
     nyears = yearly_stats(year_stats, years, prices, nrows);
 
     
-    print_year_stats(year_stats, prices, nyears, STAGE3);
+    print_year_stats(year_stats, prices, nrows, nyears, STAGE3);
 
-    
+    printf("\n");
 
 }
 
 
+
+/* ========================================================================== */
+/* prints 'ta daa!' (indicating finish) */
+
+void ta_da() {
+    printf("ta daa!\n");
+}
 
 /* ========================================================================== */
 
@@ -473,11 +490,57 @@ void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int
 /* ========================================================================== */
 
 /* prints out yearly min and max stats for each year covered */
-void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int nyears, int stage) {
-    
+void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int n, int nyears, int stage) {
+    int max_chars = round_up(max_price(prices, 0, n - 1) / POINTS_PER_CHAR) + 1;
+    char graph[max_chars];
     for (int i = 0; i < nyears; i++) {
+
+        form_graph(year_stats, graph, i);
+        
+        /*for (int j = 0; j < max_pos + 1; j++) {
+            printf("%c", graph[j]);
+        }  */ 
+
+
+
         print_stage(stage);
-        printf("%.f | %.1f--%.1f |  \n", year_stats[i][NESTED_YEAR_YEAR], year_stats[i][NESTED_YEAR_MIN], year_stats[i][NESTED_YEAR_MAX]);
+        printf("%.f | %6.1f-- %-5.1f |%s\n", year_stats[i][NESTED_YEAR_YEAR], year_stats[i][NESTED_YEAR_MIN], year_stats[i][NESTED_YEAR_MAX], graph);
     }
     
 }
+
+
+/* ========================================================================== */
+
+/* prints out the graph corresponding to min and max values */
+void form_graph(double year_stats[][NESTED_YEAR_COLS], char graph_string[], int year_index) {
+    int min_pos = round_up(year_stats[year_index][NESTED_YEAR_MIN] / POINTS_PER_CHAR);
+    int max_pos = round_up(year_stats[year_index][NESTED_YEAR_MAX] / POINTS_PER_CHAR);
+
+    // adds the requried chars to the string (-1 there due to rounding up)
+    for (int i = 0; i < min_pos - 1; i++) {
+        graph_string[i] = ' ';
+    }
+
+    for (int i = min_pos - 1; i < max_pos; i++) {
+        graph_string[i] = MARKER;
+    }
+    
+    graph_string[max_pos] = NULL_BYTE;
+
+                  
+
+}
+
+               
+/* ========================================================================== */
+
+/* rounds up the positive floating point numbers and returns as int */
+int round_up(double num) {
+    return (int) num + 1;
+
+}
+              
+              
+               
+               
