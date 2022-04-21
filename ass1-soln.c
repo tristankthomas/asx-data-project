@@ -107,7 +107,7 @@ void print_year_stats(double year_stats[][NESTED_YEAR_COLS],
 void form_graph(double year_stats[][NESTED_YEAR_COLS], 
     char graph_string[MAX_MARKER], int year_index);
 int round_up(double num);
-void ta_da();
+void ta_da(void);
 
 
 
@@ -150,6 +150,12 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
     /* reads data into 5 arrays */
     while (scanf("%d %d %d %d %lf", &date, &day, &month, 
             &year, &price) == 5) {
+        
+        if (nrows == MAX_ROWS) {
+
+            error_and_exit("Too much input data", __LINE__);
+
+        }
         
         dates[nrows] = date;
         days[nrows] = day;
@@ -257,7 +263,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 /* ========================================================================== */
 /* prints 'ta daa!' (indicating finish) */
 
-void ta_da() {
+void ta_da(void) {
 
     printf("ta daa!\n");
 
@@ -500,6 +506,17 @@ double max_price(double prices[], int start, int finish) {
 
 
 /* ============================ Helper Functions ============================ */
+
+/* prints the error message and exits the program */
+//give credit
+void
+error_and_exit(char *err, int line) {
+
+	printf("Problem at line %3d: %s\n", line, err);
+	exit(EXIT_FAILURE);
+
+}
+
 
 /* prints the section number */
 void print_stage(int stage) {
