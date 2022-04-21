@@ -91,6 +91,7 @@ void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int
 int yearly_stats(double year_stats[][NESTED_YEAR_COLS], int years[], double prices[], int n);
 double min_price(double prices[], int start, int finish);
 double max_price(double prices[], int start, int finish);
+void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int nyears, int stage);
 
 
 
@@ -238,13 +239,9 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
     nyears = yearly_stats(year_stats, years, prices, nrows);
 
     
+    print_year_stats(year_stats, prices, nyears, STAGE3);
 
-     for (int i = 0; i < nyears; i++) {
-        printf("year = %.f, min = %.2f, max = %.2f\n", year_stats[i][0], year_stats[i][1], year_stats[i][2]);
-    } 
     
-
-    printf("\n");
 
 }
 
@@ -471,3 +468,16 @@ void print_month_stats(double month_stats[][NESTED_MONTH_COLS], int nmonths, int
     }
 }
 
+
+
+/* ========================================================================== */
+
+/* prints out yearly min and max stats for each year covered */
+void print_year_stats(double year_stats[][NESTED_YEAR_COLS], double prices[], int nyears, int stage) {
+    
+    for (int i = 0; i < nyears; i++) {
+        print_stage(stage);
+        printf("%.f | %.1f--%.1f |  \n", year_stats[i][NESTED_YEAR_YEAR], year_stats[i][NESTED_YEAR_MIN], year_stats[i][NESTED_YEAR_MAX]);
+    }
+    
+}
