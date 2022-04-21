@@ -315,7 +315,7 @@ int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[], double 
             month_stats[nmonths][NESTED_MONTH_MONTH] = month;
             month_stats[nmonths][NESTED_MONTH_WEEKS] = num_weeks;
             month_stats[nmonths][NESTED_MONTH_AVG] = avg_gain(gains, num_weeks);
-            month_stats[nmonths][NESTED_MONTH_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NESTED_MONTH_MONTH]);
+            month_stats[nmonths][NESTED_MONTH_CONF] = conf_int(gains, num_weeks, month_stats[nmonths][NESTED_MONTH_AVG]);
             
             nmonths++; // buddy variable for month_stats
         }
