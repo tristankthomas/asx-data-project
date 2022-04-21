@@ -336,18 +336,15 @@ int monthly_stats(double month_stats[][NESTED_MONTH_COLS], int months[],
 
         for (int i = 1; i < n; i++) {
 
-            if (months[i] == month) {
-
-                gains[num_weeks] = perc_gain(prices, i - 1, i);
-                num_weeks++;
-
-            } else if (month == OVERALL) {
+            if (months[i] == month || month == OVERALL) {
 
                 gains[num_weeks] = perc_gain(prices, i - 1, i);
                 num_weeks++;
 
             }
+
         }
+        
         if (num_weeks) {
 
             month_stats[nmonths][NESTED_MONTH_MONTH] = month;
@@ -629,9 +626,10 @@ void form_graph(double year_stats[][NESTED_YEAR_COLS], char graph_string[],
 
 /* rounds up the positive floating point numbers and returns as int */
 int round_up(double num) {
-    
+
     return (int) num + 1;
 
 }
 
 /* programming is fun */
+
