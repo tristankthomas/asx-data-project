@@ -217,7 +217,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
  void do_stage2(int months[], double prices[], int nrows, int stage) {
      /* array sizes are months plus 1 to accomodate the overall stats */
     double gains[MAX_ROWS];
-    int nmonths = 0, num_weeks;
+    int num_weeks;
     char month_list[MAX_MONTHS + 1][MAX_MONTH_STR_LEN + 1] = 
             {"January", "February", "March", "April", "May", "June", 
             "July", "August", "September", "October", "November", 
@@ -254,7 +254,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
                 avg_gain(gains, num_weeks), 
                 conf_int(gains, num_weeks, avg_gain(gains, num_weeks)));
 
-            nmonths++;
+
 
         }
     }
