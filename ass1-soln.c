@@ -258,17 +258,16 @@ void do_stage1(int days[], int months[], int years[], double prices[],
             month_stats[nmonths][NESTED_MONTH_CONF] = conf_int(gains, 
                 num_weeks, month_stats[nmonths][NESTED_MONTH_AVG]);
             
-            nmonths++; // buddy variable for month_stats
-
             print_stage(stage);
             // array of months plus overall
             printf("%-9s :%5.f Fridays, average gain = %5.2f%%, ci95 +- "
-                "%.2f%%\n", month_num[(int) month_stats[nmonths - 1]
-                [NESTED_MONTH_MONTH] - 1], 
-                month_stats[nmonths - 1][NESTED_MONTH_WEEKS], 
-                month_stats[nmonths - 1][NESTED_MONTH_AVG], 
-                month_stats[nmonths - 1][NESTED_MONTH_CONF]);
+                "%.2f%%\n", 
+                month_num[(int) month_stats[nmonths][NESTED_MONTH_MONTH] - 1], 
+                month_stats[nmonths][NESTED_MONTH_WEEKS], 
+                month_stats[nmonths][NESTED_MONTH_AVG], 
+                month_stats[nmonths][NESTED_MONTH_CONF]);
 
+            nmonths++; // buddy variable for month_stats
 
         }
     }
@@ -287,7 +286,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
 
 void do_stage3(int years[], double prices[], int nrows, int stage) {
     double year_stats[MAX_YEARS][NESTED_YEAR_COLS];
-    int nyears = 0, j = 0;
+    int nyears = 0, prev_i = 0;
     int max_chars = round_up(max_price(prices, 0, nrows - 1) / 
         POINTS_PER_CHAR) + 1;
     char graph[max_chars];
@@ -297,28 +296,26 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
         if (years[i] != years[i + 1]) {
 
             year_stats[nyears][NESTED_YEAR_YEAR] = years[i];
-            year_stats[nyears][NESTED_YEAR_MIN] = min_price(prices, j, i);
-            year_stats[nyears][NESTED_YEAR_MAX] = max_price(prices, j, i);
+            year_stats[nyears][NESTED_YEAR_MIN] = min_price(prices, prev_i, i);
+            year_stats[nyears][NESTED_YEAR_MAX] = max_price(prices, prev_i, i);
+            
+            form_graph(year_stats, graph, nyears);
+
+            print_stage(stage);
+            printf("%.f | %6.1f--%6.1f |%s\n", 
+                year_stats[nyears][NESTED_YEAR_YEAR], 
+                year_stats[nyears][NESTED_YEAR_MIN], 
+                year_stats[nyears][NESTED_YEAR_MAX], graph);
+
             nyears++;
-            /* offset by one to avoid starting at the last element 
-             * of the previous year */
-            j = i + 1; 
+            /* offset by one to avoid starting at the last element of the 
+             * previous year */
+            prev_i = i + 1;
 
         }
 
     }
     
-    for (int i = 0; i < nyears; i++) {
-
-        form_graph(year_stats, graph, i);
-
-        print_stage(stage);
-        printf("%.f | %6.1f--%6.1f |%s\n", year_stats[i][NESTED_YEAR_YEAR], 
-            year_stats[i][NESTED_YEAR_MIN], year_stats[i][NESTED_YEAR_MAX], 
-            graph);
-
-
-    }
     printf("\n");
 
 }
