@@ -35,22 +35,28 @@
 
 */
 
-/* Preprocessor declarations */
+/* ========================================================================== */
+
+/* -- Library inclusions -- */
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
+/* -- Defining constants -- */
 #define MAX_ROWS 10000
 #define FIRST_WEEK 0
+#define MIN 0
+#define MAX 1
+
 #define STAGE1 1
 #define STAGE2 2
 #define STAGE3 3
-#define MIN 0
-#define MAX 1
+
 #define MAX_MONTHS 12
 #define MAX_YEARS MAX_ROWS / 52
 #define OVERALL 13
 #define MAX_MONTH_STR_LEN 9
+
 #define NESTED_MONTH_COLS 4
 #define NESTED_MONTH_MONTH 0
 #define NESTED_MONTH_WEEKS 1
@@ -60,33 +66,32 @@
 #define NESTED_YEAR_YEAR 0
 #define NESTED_YEAR_MIN 1
 #define NESTED_YEAR_MAX 2
+
 #define POINTS_PER_CHAR 200
-#define MAX_PRICE 100000
-#define MAX_MARKER MAX_PRICE / POINTS_PER_CHAR
 #define MARKER '*'
-#define NULL_BYTE '\0'
 
-/* Typedefs */
-
+/* --- Type definitions --- */
 
 
 
 
 
-/* Function prototypes */
+
+/* -- Function prototypes - */
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
     double prices[], int max_rows);
-void print_one_row(int days[], int months[], int years[], double prices[], 
-    int index);
-void discard_header();
+void discard_header(void);
 void do_stage1(int days[], int months[], int years[], double prices[], 
     int nrows, int stage);
 void do_stage2(int months[], double prices[], int nrows, int stage);
 void do_stage3(int years[], double prices[], int nrows, int stage);
-void print_stage(int stage);
+void ta_da(void);
 double min_perc_gain(double prices[], int n, int *min_index);
 double max_perc_gain(double prices[], int n, int *max_index);
 double perc_gain(double prices[], int index1, int index2);
+void print_stage(int stage);
+void print_one_row(int days[], int months[], int years[], double prices[], 
+    int index);
 void print_gain(int days[], int months[], int years[], double gain, 
     int index, int type);
 double avg_gain(double gains[], int num_weeks);
@@ -96,9 +101,9 @@ double std_dev(double gains[], int num_weeks, double avg);
 double min_price(double prices[], int start, int finish);
 double max_price(double prices[], int start, int finish);
 void form_graph(double year_stats[][NESTED_YEAR_COLS], 
-    char graph_string[MAX_MARKER], int year_index);
+    char graph_string[], int year_index);
 int round_up(double num);
-void ta_da(void);
+
 void error_and_exit(char *err, int line);
 
 
@@ -106,8 +111,7 @@ void error_and_exit(char *err, int line);
 
 /* ============================== Main function ============================= */
 
-int
-main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
     int nrows = 0;
     int dates[MAX_ROWS] = {0}, days[MAX_ROWS] = {0}, months[MAX_ROWS] = {0}, 
         years[MAX_ROWS] = {0};
@@ -124,7 +128,8 @@ main(int argc, char *argv[]) {
 	return 0;
 }
 
-/* ========================================================================== */
+
+/* ========================= Reading input function ========================= */
 
 /* Reads the 5 data columns into parallel arrays 
 ** give credit for this code */
@@ -137,7 +142,6 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
     
     /* discards header line */
     discard_header();
-    
     
     /* reads data into 5 arrays */
     while (scanf("%d %d %d %d %lf", &date, &day, &month, 
@@ -166,7 +170,7 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 /* ========================================================================== */
 
 /* discards the header of the input file */
-void discard_header() {
+void discard_header(void) {
     char ch;
     while ((ch = getchar()) != EOF) {
         if (ch == '\n') {
@@ -209,6 +213,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     print_stage(stage);
     printf("change over  %4d week period = %6.2f%%\n\n", nrows - 1, tot_gain);
 }
+
 
 
 /* ================================= Stage 2 ================================ */
@@ -321,6 +326,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 
 
 /* ========================================================================== */
+
 /* prints 'ta daa!' (indicating finish) */
 
 void ta_da(void) {
@@ -329,7 +335,16 @@ void ta_da(void) {
 
 }
 
+
+
+
 /* ========================================================================== */
+/* ============================ Helper functions ============================ */
+/* ========================================================================== */
+
+
+
+/* ====================== Calculation helper functions ====================== */
 
 /* calculates gain between two values of array */
 double perc_gain(double prices[], int index1, int index2) {
@@ -416,7 +431,6 @@ double sum_arr(double arr[], int n) {
 /* ========================================================================== */
 
 /* calculates the confidence interval */
-
 double conf_int(double gains[], int num_weeks, double avg) {
 
     return 1.96 * std_dev(gains, num_weeks, avg) / sqrt(num_weeks);
@@ -427,7 +441,6 @@ double conf_int(double gains[], int num_weeks, double avg) {
 /* ========================================================================== */
 
 /* calculates the standard deviation */
-
 double std_dev(double gains[], int num_weeks, double avg) {
     double sum = 0;
 
@@ -487,9 +500,18 @@ double max_price(double prices[], int start, int finish) {
 }
 
 
+/* ========================================================================== */
+
+/* rounds up the positive floating point numbers and returns as int */
+int round_up(double num) {
+
+    return (int) num + 1;
+
+}
 
 
-/* ============================ Helper Functions ============================ */
+
+/* ======================= Formatting helper functions ====================== */
 
 /* prints the error message and exits the program */
 //give credit
@@ -500,6 +522,7 @@ void error_and_exit(char *err, int line) {
 
 }
 
+/* ========================================================================== */
 
 /* prints the section number */
 void print_stage(int stage) {
@@ -557,19 +580,10 @@ void form_graph(double year_stats[][NESTED_YEAR_COLS], char graph_string[],
 
     }
     
-    graph_string[max_pos] = NULL_BYTE; 
+    graph_string[max_pos] = '\0'; 
 
 }
 
                
-/* ========================================================================== */
-
-/* rounds up the positive floating point numbers and returns as int */
-int round_up(double num) {
-
-    return (int) num + 1;
-
-}
 
 /* programming is fun */
-
