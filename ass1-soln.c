@@ -62,9 +62,11 @@
 
 /* --- Type definitions --- */
 
+typedef char month_t[MAX_MONTH_STR_LEN + 1];
+typedef month_t month_arr_t[MAX_MONTHS + 1];
 
 
-
+// add type def for the months array possibly add here //
 
 
 /* -- Function prototypes - */
@@ -218,9 +220,8 @@ void do_stage1(int days[], int months[], int years[], double prices[],
      /* array sizes are months plus 1 to accomodate the overall stats */
     double gains[MAX_ROWS];
     int num_weeks;
-    char month_list[MAX_MONTHS + 1][MAX_MONTH_STR_LEN + 1] = 
-            {"January", "February", "March", "April", "May", "June", 
-            "July", "August", "September", "October", "November", 
+    month_arr_t month_arr = {"January", "February", "March", "April", "May", 
+            "June", "July", "August", "September", "October", "November", 
             "December", "Overall"};
 
     /* fills array with number of weeks, average gains and 95% confidence 
@@ -250,7 +251,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
  
             print_stage(stage);
             printf("%-9s :%5d Fridays, average gain = %5.2f%%, ci95 +- "
-                "%.2f%%\n", month_list[month - 1], num_weeks, 
+                "%.2f%%\n", month_arr[month - 1], num_weeks, 
                 avg_gain(gains, num_weeks), 
                 conf_int(gains, num_weeks, avg_gain(gains, num_weeks)));
 
