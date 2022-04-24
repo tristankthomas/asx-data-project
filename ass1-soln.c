@@ -61,18 +61,13 @@
 #define MARKER '*'
 
 /* --- Type definitions --- */
-
 typedef char month_t[MAX_MONTH_STR_LEN + 1];
 typedef month_t month_arr_t[MAX_MONTHS + 1];
-
-
-// add type def for the months array possibly add here //
 
 
 /* -- Function prototypes - */
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
     double prices[], int max_rows);
-void discard_header(void);
 void do_stage1(int days[], int months[], int years[], double prices[], 
     int nrows, int stage);
 void do_stage2(int months[], double prices[], int nrows, int stage);
@@ -121,8 +116,15 @@ int main(int argc, char *argv[]) {
 
 /* ========================= Reading input function ========================= */
 
-/* Reads the 5 data columns into parallel arrays 
-** give credit for this code */
+/* This function was adapted from two functions provided as Figure 4.1.3
+    on page 58 and Figure 7.2 on page 102 of the subject textbook,
+    written by Alistair Moffat, and accessed via
+    https://people.eng.unimelb.edu.au/ammoffat/ppsaa/c/
+    Altered to sort parallel arrays and and detect a line of chars */
+
+/* Reads the 5 data columns into parallel arrays */
+
+    
 
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
         double prices[], int max_rows) {
@@ -131,7 +133,12 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
     double price;
     
     /* discards header line */
-    discard_header();
+    char ch;
+    while ((ch = getchar()) != EOF) {
+        if (ch == '\n') {
+            break;
+        }
+    }
     
     /* reads data into 5 parallel arrays */
     while (scanf("%d %d %d %d %lf", &date, &day, &month, 
@@ -152,23 +159,9 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 
     }
 
-    /* returns the number of rows read */
+    /* returns the number of rows read (buddy variable to arrays) */
     return nrows;
 }
-
-
-/* ========================================================================== */
-
-/* discards the header of the input file */
-void discard_header(void) {
-    char ch;
-    while ((ch = getchar()) != EOF) {
-        if (ch == '\n') {
-            return;
-        }
-    }
-}
-
 
 
 /* ================================= Stage 1 ================================ */
@@ -223,9 +216,6 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     month_arr_t month_arr = {"January", "February", "March", "April", "May", 
             "June", "July", "August", "September", "October", "November", 
             "December", "Overall"};
-
-    /* fills array with number of weeks, average gains and 95% confidence 
-     * interval for each month */
     
     /* iterates through the months plus an extra index for overall stats */
     for (int month = 1; month <= MAX_MONTHS + 1; month++) {
@@ -233,7 +223,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
         num_weeks = 0; // buddy variable to gains
 
         /* iterates through the input month array to fill the gains array for a 
-         * particular month */
+           particular month */
         for (int i = 1; i < nrows; i++) {
 
             if (months[i] == month || month == OVERALL) {
@@ -246,16 +236,14 @@ void do_stage1(int days[], int months[], int years[], double prices[],
         }
 
         /* if the month is present in input (indicated by num_weeks) then 
-         * the monthly stats for that month are recorded and printed */
+           the monthly stats for that month are printed using gains */
         if (num_weeks) {
  
             print_stage(stage);
             printf("%-9s :%5d Fridays, average gain = %5.2f%%, ci95 +- "
                 "%.2f%%\n", month_arr[month - 1], num_weeks, 
-                avg_gain(gains, num_weeks), 
-                conf_int(gains, num_weeks, avg_gain(gains, num_weeks)));
-
-
+                avg_gain(gains, num_weeks), conf_int(gains, num_weeks, 
+                avg_gain(gains, num_weeks)));
 
         }
     }
@@ -279,6 +267,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
     char graph[max_chars];
     double min = 0, max = 0;
 
+    
     for (int i = 0; i < nrows; i++) {
         
         if (years[i] != years[i + 1]) {
@@ -292,7 +281,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
             printf("%d | %6.1f--%6.1f |%s\n", years[i], min, max, graph);
 
             /* offset by one to avoid starting at the last element of the 
-             * previous year */
+               previous year */
             prev_i = i + 1;
 
         }
