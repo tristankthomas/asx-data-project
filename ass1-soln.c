@@ -59,7 +59,6 @@
 #define POINTS_PER_CHAR 200
 #define MARKER '*'
 
-
 /* --- Type definitions --- */
 typedef int weeks_t[MAX_ROWS];
 typedef double prices_t[MAX_ROWS];
@@ -100,7 +99,7 @@ void error_and_exit(char *err, int line);
 /* ============================== Main function ============================= */
 
 int main(int argc, char *argv[]) {
-    int nrows = 0;
+    int nrows;
     weeks_t dates = {0}, days = {0}, months = {0}, years = {0};
     prices_t asx = {0};
     
@@ -122,7 +121,7 @@ int main(int argc, char *argv[]) {
     on page 58 and Figure 7.2 on page 102 of the subject textbook,
     written by Alistair Moffat, and accessed via
     https://people.eng.unimelb.edu.au/ammoffat/ppsaa/c/
-    Altered to sort parallel arrays and and detect a line of chars */
+    Altered to sort parallel arrays and detect a line of chars */
 
 /* Reads the 5 data columns into parallel arrays */
 
@@ -168,7 +167,10 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
 
 /* ================================= Stage 1 ================================ */
 
-/* stage one outputs the following 
+/* The names of the next three functions were taken from the sample solution, 
+    written by Alistair Moffat, and accessed via the LMS */
+
+/* Stage one outputs the following 
     - price at week 1
     - price at the last week
     - min weekly percentage gain over period
@@ -207,7 +209,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
 
 /* ================================= Stage 2 ================================ */
 
-/* stage two outputs the following
+/* Stage two outputs the following
     - average weekly gain for each month
     - confidence interval for each month using standard deviation */
  
@@ -258,7 +260,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
 
 /* ================================= Stage 3 ================================ */
 
-/* stage three outputs the following
+/* Stage three outputs the following
     - min and max asx values for each year
     - tabulates yearly data into multiple 200 index point groups */
 
@@ -269,7 +271,6 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
         POINTS_PER_CHAR) + 1;
     char graph[max_chars];
     double min = 0, max = 0;
-
     
     for (int i = 0; i < nrows; i++) {
         /* once year changes the min and max price up to that point for the
@@ -301,7 +302,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 
 /* ========================================================================== */
 
-/* prints 'ta daa!' (indicating finish) */
+/* Prints 'ta daa!' (indicating finish) */
 
 void ta_da(void) {
 
@@ -318,7 +319,7 @@ void ta_da(void) {
 
 /* ====================== Calculation helper functions ====================== */
 
-/* calculates gain between two values of array */
+/* Calculates gain between two values of array */
 double perc_gain(double prices[], int week1, int week2) {
 
     return 100.0 * (prices[week2] - prices[week1]) / prices[week1];
@@ -340,6 +341,7 @@ double min_perc_gain(double prices[], int nrows, int *min_index) {
         if (gain < min_gain || i == 0) {
 
             min_gain = gain;
+            /* incremented because gain at end of week */
             *min_index = i + 1;
 
         }
@@ -352,7 +354,7 @@ double min_perc_gain(double prices[], int nrows, int *min_index) {
 
 /* ========================================================================== */
 
-/* calculates the maximum percentage gain over the period */
+/* Calculates the maximum percentage gain over the period */
 double max_perc_gain(double prices[], int nrows, int *max_index) {
     double max_gain = 0, gain;
 
@@ -363,7 +365,8 @@ double max_perc_gain(double prices[], int nrows, int *max_index) {
         if (gain > max_gain || i == 0) {
 
             max_gain = gain;
-            *max_index = i + 1; // incremented because gain at end of week
+            /* incremented because gain at end of week */
+            *max_index = i + 1; 
 
         }
     }
@@ -375,7 +378,7 @@ double max_perc_gain(double prices[], int nrows, int *max_index) {
 
 /* ========================================================================== */
 
-/* calculates the average gain given sum and number of elements */
+/* Calculates the average gain given sum and number of elements */
 double avg_gain(double gains[], int num_weeks) {
 
     return sum_arr(gains, num_weeks) / num_weeks;
@@ -385,7 +388,7 @@ double avg_gain(double gains[], int num_weeks) {
 
 /* ========================================================================== */
 
-/* calculates the sum of the elements of an array */
+/* Calculates the sum of the elements of an array */
 double sum_arr(double arr[], int n) {
     double sum = 0;
 
@@ -412,7 +415,7 @@ double conf_int(double gains[], int num_weeks, double avg) {
 
 /* ========================================================================== */
 
-/* calculates the standard deviation */
+/* Calculates the standard deviation */
 double std_dev(double gains[], int num_weeks, double avg) {
     double sum = 0;
 
@@ -430,7 +433,7 @@ double std_dev(double gains[], int num_weeks, double avg) {
 
 /* ========================================================================== */
 
-/* calculates the minimum value of a given array between two indexes */
+/* Calculates the minimum value of a given array between two indexes */
 double min_price(double prices[], int start, int finish) {
     double min = prices[start];
 
@@ -453,7 +456,7 @@ double min_price(double prices[], int start, int finish) {
 
 /* ========================================================================== */
 
-/* calculates the maximum value of a given array between two indexes */
+/* Calculates the maximum value of a given array between two indexes */
 double max_price(double prices[], int start, int finish) {
     double max = prices[start];
 
@@ -474,7 +477,7 @@ double max_price(double prices[], int start, int finish) {
 
 /* ========================================================================== */
 
-/* rounds up the positive floating point numbers and returns as int */
+/* Rounds up the positive floating point numbers and returns as int */
 int round_up(double num) {
 
     return (int) num + 1;
@@ -485,8 +488,10 @@ int round_up(double num) {
 
 /* ======================= Formatting helper functions ====================== */
 
-/* prints the error message and exits the program */
-//give credit
+/* This function was taken from the sample solution, written by Alistair 
+    Moffat, and accessed via the LMS */
+
+/* Prints the error message and exits the program */
 void error_and_exit(char *err, int line) {
 
 	printf("Problem at line %3d: %s\n", line, err);
@@ -496,7 +501,10 @@ void error_and_exit(char *err, int line) {
 
 /* ========================================================================== */
 
-/* prints the section number */
+/* This function was taken from the sample solution, written by Alistair 
+    Moffat, and accessed via the LMS */
+
+/* Prints the stage number */
 void print_stage(int stage) {
 
     printf("S%d, ", stage);
@@ -519,7 +527,7 @@ void print_one_week(int days[], int months[], int years[], double price[],
 
 /* ========================================================================== */
 
-/* prints out the percentage gains for stage 1 */
+/* Prints out the percentage gains for stage 1 */
 void print_gain(int days[], int months[], int years[], double gain, 
         int index, int type) {
 
@@ -531,7 +539,7 @@ void print_gain(int days[], int months[], int years[], double gain,
 
 /* ========================================================================== */
 
-/* prints out the graph corresponding to min and max values */
+/* Prints out the graph corresponding to min and max values */
 void form_graph(int min_pos, int max_pos, char graph_string[]) {
     // adds the requried chars to the string (-1 there due to rounding up)
     for (int i = 0; i < min_pos - 1; i++) {
@@ -550,6 +558,6 @@ void form_graph(int min_pos, int max_pos, char graph_string[]) {
 
 }
 
-               
+/* ========================================================================== */
 
 /* programming is fun */
