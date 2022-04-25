@@ -53,14 +53,17 @@
 #define STAGE3 3
 
 #define MAX_MONTHS 12
-#define MAX_YEARS MAX_ROWS / 52
 #define OVERALL 13
 #define MAX_MONTH_STR_LEN 9
 
 #define POINTS_PER_CHAR 200
 #define MARKER '*'
 
+
 /* --- Type definitions --- */
+typedef int weeks_t[MAX_ROWS];
+typedef double prices_t[MAX_ROWS];
+
 typedef char month_t[MAX_MONTH_STR_LEN + 1];
 typedef month_t month_arr_t[MAX_MONTHS + 1];
 
@@ -73,11 +76,11 @@ void do_stage1(int days[], int months[], int years[], double prices[],
 void do_stage2(int months[], double prices[], int nrows, int stage);
 void do_stage3(int years[], double prices[], int nrows, int stage);
 void ta_da(void);
-double min_perc_gain(double prices[], int n, int *min_index);
-double max_perc_gain(double prices[], int n, int *max_index);
-double perc_gain(double prices[], int index1, int index2);
+double min_perc_gain(double prices[], int nrows, int *min_index);
+double max_perc_gain(double prices[], int nrows, int *max_index);
+double perc_gain(double prices[], int week1, int week2);
 void print_stage(int stage);
-void print_one_row(int days[], int months[], int years[], double prices[], 
+void print_one_week(int days[], int months[], int years[], double prices[], 
     int index);
 void print_gain(int days[], int months[], int years[], double gain, 
     int index, int type);
@@ -98,9 +101,8 @@ void error_and_exit(char *err, int line);
 
 int main(int argc, char *argv[]) {
     int nrows = 0;
-    int dates[MAX_ROWS] = {0}, days[MAX_ROWS] = {0}, months[MAX_ROWS] = {0}, 
-        years[MAX_ROWS] = {0};
-    double asx[MAX_ROWS] = {0};
+    weeks_t dates = {0}, days = {0}, months = {0}, years = {0};
+    prices_t asx = {0};
     
     nrows = read_par_arrays(dates, days, months, years, asx, MAX_ROWS);
 
@@ -185,9 +187,9 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     
     /* prints first and last data points */
     print_stage(stage);
-    print_one_row(days, months, years, prices, FIRST_WEEK);
+    print_one_week(days, months, years, prices, FIRST_WEEK);
     print_stage(stage);
-    print_one_row(days, months, years, prices, nrows - 1);
+    print_one_week(days, months, years, prices, nrows - 1);
 
     /* prints percentage gains */
     print_stage(stage);
@@ -262,6 +264,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
 
 void do_stage3(int years[], double prices[], int nrows, int stage) {
     int prev_i = 0;
+    /* calculates maximum characters the graph should have */
     int max_chars = round_up(max_price(prices, 0, nrows - 1) / 
         POINTS_PER_CHAR) + 1;
     char graph[max_chars];
@@ -269,14 +272,17 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 
     
     for (int i = 0; i < nrows; i++) {
-        
+        /* once year changes the min and max price up to that point for the
+           preceding year are found */
         if (years[i] != years[i + 1]) {
             min = min_price(prices, prev_i, i);
             max = max_price(prices, prev_i, i);
 
+            /* forms the appropriate graph for each year */
             form_graph(round_up(min / POINTS_PER_CHAR), 
                 round_up(max /POINTS_PER_CHAR), graph);
 
+            /* prints data in appropriate format */
             print_stage(stage);
             printf("%d | %6.1f--%6.1f |%s\n", years[i], min, max, graph);
 
@@ -293,7 +299,6 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 }
 
 
-
 /* ========================================================================== */
 
 /* prints 'ta daa!' (indicating finish) */
@@ -305,8 +310,6 @@ void ta_da(void) {
 }
 
 
-
-
 /* ========================================================================== */
 /* ============================ Helper functions ============================ */
 /* ========================================================================== */
@@ -316,9 +319,9 @@ void ta_da(void) {
 /* ====================== Calculation helper functions ====================== */
 
 /* calculates gain between two values of array */
-double perc_gain(double prices[], int index1, int index2) {
+double perc_gain(double prices[], int week1, int week2) {
 
-    return 100.0 * (prices[index2] - prices[index1]) / prices[index1];
+    return 100.0 * (prices[week2] - prices[week1]) / prices[week1];
 
 }
 
@@ -327,10 +330,10 @@ double perc_gain(double prices[], int index1, int index2) {
 
 /* calculates the minimum percentage gain over the period */
 
-double min_perc_gain(double prices[], int n, int *min_index) {
+double min_perc_gain(double prices[], int nrows, int *min_index) {
     double min_gain = 0, gain;
 
-    for (int i = 0; i < n - 1; i++) {
+    for (int i = 0; i < nrows - 1; i++) {
 
         gain = perc_gain(prices, i, i + 1);
 
@@ -350,10 +353,10 @@ double min_perc_gain(double prices[], int n, int *min_index) {
 /* ========================================================================== */
 
 /* calculates the maximum percentage gain over the period */
-double max_perc_gain(double prices[], int n, int *max_index) {
+double max_perc_gain(double prices[], int nrows, int *max_index) {
     double max_gain = 0, gain;
 
-    for (int i = 0; i < n - 1; i++) {
+    for (int i = 0; i < nrows - 1; i++) {
 
         gain = perc_gain(prices, i, i + 1);
 
@@ -504,7 +507,7 @@ void print_stage(int stage) {
 
 /* prints out a single row of the inputed data based on the inputted index */
 
-void print_one_row(int days[], int months[], int years[], double price[], 
+void print_one_week(int days[], int months[], int years[], double price[], 
         int index) {
 
     printf("week ending %02d/%02d/%d,   asx = %5.1f\n", days[index], 
