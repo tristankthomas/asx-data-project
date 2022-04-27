@@ -63,7 +63,9 @@
 typedef int weeks_t[MAX_ROWS];
 typedef double prices_t[MAX_ROWS];
 
+/* incremented to include the null byte */
 typedef char month_t[MAX_MONTH_STR_LEN + 1];
+/* incremented to include the string 'overall' */
 typedef month_t month_arr_t[MAX_MONTHS + 1];
 
 
@@ -79,6 +81,7 @@ double min_perc_gain(double prices[], int nrows, int *min_index);
 double max_perc_gain(double prices[], int nrows, int *max_index);
 double perc_gain(double prices[], int week1, int week2);
 void print_stage(int stage);
+void print_blank(void);
 void print_one_week(int days[], int months[], int years[], double prices[], 
     int index);
 void print_gain(int days[], int months[], int years[], double gain, 
@@ -132,13 +135,17 @@ int read_par_arrays(int dates[], int days[], int months[], int years[],
     int nrows = 0;
     int date, day, month, year;
     double price;
-    
-    /* discards header line */
     char ch;
+
+    /* discards header line */
     while ((ch = getchar()) != EOF) {
+
         if (ch == '\n') {
+
             break;
+
         }
+
     }
     
     /* reads data into 5 parallel arrays */
@@ -201,7 +208,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     print_stage(stage);
     printf("change over  %4d week period = %6.2f%%\n", nrows - 1, tot_gain);
 
-    printf("\n");
+    print_blank();
 
 }
 
@@ -214,7 +221,6 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     - confidence interval for each month using standard deviation */
  
  void do_stage2(int months[], double prices[], int nrows, int stage) {
-     /* array sizes are months plus 1 to accomodate the overall stats */
     double gains[MAX_ROWS];
     int num_weeks;
     month_arr_t month_arr = {"January", "February", "March", "April", "May", 
@@ -246,13 +252,13 @@ void do_stage1(int days[], int months[], int years[], double prices[],
             print_stage(stage);
             printf("%-9s :%5d Fridays, average gain = %5.2f%%, ci95 +- "
                 "%.2f%%\n", month_arr[month - 1], num_weeks, 
-                avg_gain(gains, num_weeks), conf_int(gains, num_weeks, 
-                avg_gain(gains, num_weeks)));
+                avg_gain(gains, num_weeks), 
+                conf_int(gains, num_weeks, avg_gain(gains, num_weeks)));
 
         }
     }
 
-    printf("\n");
+    print_blank();
 
  }
 
@@ -295,7 +301,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 
     }
     
-    printf("\n");
+    print_blank();
 
 }
 
@@ -322,6 +328,7 @@ void ta_da(void) {
 /* Calculates gain between two values of array */
 double perc_gain(double prices[], int week1, int week2) {
 
+    /* computes percentage gain */
     return 100.0 * (prices[week2] - prices[week1]) / prices[week1];
 
 }
@@ -337,11 +344,12 @@ double min_perc_gain(double prices[], int nrows, int *min_index) {
     for (int i = 0; i < nrows - 1; i++) {
 
         gain = perc_gain(prices, i, i + 1);
-
+        /* checks current percentage gain against minimum and 
+           updates if necessary (bypasses check for first iteration) */
         if (gain < min_gain || i == 0) {
 
             min_gain = gain;
-            /* incremented because gain at end of week */
+            /* i incremented because gain at end of week */
             *min_index = i + 1;
 
         }
@@ -361,7 +369,8 @@ double max_perc_gain(double prices[], int nrows, int *max_index) {
     for (int i = 0; i < nrows - 1; i++) {
 
         gain = perc_gain(prices, i, i + 1);
-
+        /* checks current percentage gain against minimum and 
+           updates if necessary (bypasses check for first iteration) */
         if (gain > max_gain || i == 0) {
 
             max_gain = gain;
@@ -407,7 +416,7 @@ double sum_arr(double arr[], int n) {
 
 /* calculates the confidence interval */
 double conf_int(double gains[], int num_weeks, double avg) {
-
+    /* confidence interval formula */
     return 1.96 * std_dev(gains, num_weeks, avg) / sqrt(num_weeks);
 
 }
@@ -438,7 +447,7 @@ double min_price(double prices[], int start, int finish) {
     double min = prices[start];
 
     for (int i = start; i <= finish; i++) {
-
+        /* checks current price against min price and updates if necessary */
         if (prices[i] < min) {
 
             min = prices[i];
@@ -461,7 +470,7 @@ double max_price(double prices[], int start, int finish) {
     double max = prices[start];
 
     for (int i = start; i <= finish; i++) {
-
+        /* checks current price against min price and updates if necessary */
         if (prices[i] > max) {
 
             max = prices[i];
@@ -511,10 +520,23 @@ void print_stage(int stage) {
 
 }
 
+
+/* ========================================================================== */
+
+/* This function was taken from the sample solution, written by Alistair 
+    Moffat, and accessed via the LMS */
+
+ /* Prints a blank line */
+void print_blank(void) {
+
+    printf("\n");
+
+}
+
+
 /* ========================================================================== */
 
 /* prints out a single row of the inputed data based on the inputted index */
-
 void print_one_week(int days[], int months[], int years[], double price[], 
         int index) {
 
@@ -530,7 +552,8 @@ void print_one_week(int days[], int months[], int years[], double price[],
 /* Prints out the percentage gains for stage 1 */
 void print_gain(int days[], int months[], int years[], double gain, 
         int index, int type) {
-
+    
+    /* ternary operator used to print either min or max depending on type */
     printf("%s weekly gain on %02d/%02d/%d = %6.2f%%\n", type ? "max" : "min", 
         days[index], months[index], years[index], gain);
 
@@ -543,17 +566,18 @@ void print_gain(int days[], int months[], int years[], double gain,
 void form_graph(int min_pos, int max_pos, char graph_string[]) {
     // adds the requried chars to the string (-1 there due to rounding up)
     for (int i = 0; i < min_pos - 1; i++) {
-
+        /* adds the requried blank characters to the graph */
         graph_string[i] = ' ';
 
     }
 
     for (int i = min_pos - 1; i < max_pos; i++) {
-
+        /* adds the required amount of markers to graph */
         graph_string[i] = MARKER;
 
     }
     
+    /* includes nullbyte at last index of string */
     graph_string[max_pos] = '\0'; 
 
 }
