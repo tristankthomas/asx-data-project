@@ -76,12 +76,10 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     int nrows, int stage);
 void do_stage2(int months[], double prices[], int nrows, int stage);
 void do_stage3(int years[], double prices[], int nrows, int stage);
-void ta_da(void);
 double min_perc_gain(double prices[], int nrows, int *min_index);
 double max_perc_gain(double prices[], int nrows, int *max_index);
 double perc_gain(double prices[], int week1, int week2);
 void print_stage(int stage);
-void print_blank(void);
 void print_one_week(int days[], int months[], int years[], double prices[], 
     int index);
 void print_gain(int days[], int months[], int years[], double gain, 
@@ -112,7 +110,7 @@ int main(int argc, char *argv[]) {
     do_stage2(months, asx, nrows, STAGE2);
     do_stage3(years, asx, nrows, STAGE3);
     
-    ta_da();
+    printf("ta daa!\n");
    
 	return 0;
 }
@@ -127,9 +125,6 @@ int main(int argc, char *argv[]) {
     Altered to sort parallel arrays and detect a line of chars */
 
 /* Reads the 5 data columns into parallel arrays */
-
-    
-
 int read_par_arrays(int dates[], int days[], int months[], int years[], 
         double prices[], int max_rows) {
     int nrows = 0;
@@ -208,7 +203,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
     print_stage(stage);
     printf("change over  %4d week period = %6.2f%%\n", nrows - 1, tot_gain);
 
-    print_blank();
+    printf("\n");
 
 }
 
@@ -233,7 +228,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
         num_weeks = 0; // buddy variable to gains
 
         /* iterates through the input month array to fill the gains array for a 
-           particular month */
+           particular month (bypasses for final iteration) */
         for (int i = 1; i < nrows; i++) {
 
             if (months[i] == month || month == OVERALL) {
@@ -258,7 +253,7 @@ void do_stage1(int days[], int months[], int years[], double prices[],
         }
     }
 
-    print_blank();
+    printf("\n");
 
  }
 
@@ -301,18 +296,7 @@ void do_stage3(int years[], double prices[], int nrows, int stage) {
 
     }
     
-    print_blank();
-
-}
-
-
-/* ========================================================================== */
-
-/* Prints 'ta daa!' (indicating finish) */
-
-void ta_da(void) {
-
-    printf("ta daa!\n");
+    printf("\n");
 
 }
 
@@ -369,7 +353,7 @@ double max_perc_gain(double prices[], int nrows, int *max_index) {
     for (int i = 0; i < nrows - 1; i++) {
 
         gain = perc_gain(prices, i, i + 1);
-        /* checks current percentage gain against minimum and 
+        /* checks current percentage gain against maximum and 
            updates if necessary (bypasses check for first iteration) */
         if (gain > max_gain || i == 0) {
 
@@ -470,7 +454,7 @@ double max_price(double prices[], int start, int finish) {
     double max = prices[start];
 
     for (int i = start; i <= finish; i++) {
-        /* checks current price against min price and updates if necessary */
+        /* checks current price against max price and updates if necessary */
         if (prices[i] > max) {
 
             max = prices[i];
@@ -523,19 +507,6 @@ void print_stage(int stage) {
 
 /* ========================================================================== */
 
-/* This function was taken from the sample solution, written by Alistair 
-    Moffat, and accessed via the LMS */
-
- /* Prints a blank line */
-void print_blank(void) {
-
-    printf("\n");
-
-}
-
-
-/* ========================================================================== */
-
 /* prints out a single row of the inputed data based on the inputted index */
 void print_one_week(int days[], int months[], int years[], double price[], 
         int index) {
@@ -566,7 +537,7 @@ void print_gain(int days[], int months[], int years[], double gain,
 void form_graph(int min_pos, int max_pos, char graph_string[]) {
     // adds the requried chars to the string (-1 there due to rounding up)
     for (int i = 0; i < min_pos - 1; i++) {
-        /* adds the requried blank characters to the graph */
+        /* adds the required blank characters to the graph */
         graph_string[i] = ' ';
 
     }
